@@ -4,8 +4,6 @@ class NetworkMessage {
   //Define the possible message types
   final static String LOGIN = "HELLO",  LOGOUT = "BYE", COMMAND="SIMONSAYS", UNKNOWN = "GARBAGE";
   
- 
-  
   String messageType = UNKNOWN;
   String clientId = null;
   String body = null;

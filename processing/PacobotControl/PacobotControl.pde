@@ -39,7 +39,6 @@ Client client;
 
 //Client type specifies what type of client this is
 String clientType;
-final String BOT="Robot", CTRL="Remote Controller";
 
 HScrollbar xScrollBar;  //Scrollbar in control of panning
 VScrollbar yScrollBar;  //Scrollbar in control of tilting
@@ -99,9 +98,9 @@ void draw()
   
   //We create a new client each time client mode is changed
   if(selectedMode.equals("remote-control")){
-    refreshClient(CTRL, prevClientType);
+    refreshClient(PacobotClient.CONTROLLER, prevClientType);
   }else if(selectedMode.equals("remote-bot")){
-    refreshClient(BOT, prevClientType);
+    refreshClient(PacobotClient.ROBOT, prevClientType);
   }
   
   if(selectedMode.equals("local") || selectedMode.equals("remote-control")){
@@ -172,6 +171,8 @@ void refreshClient(String newType, String prevType){
       client = new Client(this,serverIp, serverPort);
       if(client.active()){
         println("client connected as " + clientType + " to  " + serverIp +":"+ serverPort);
+        NetworkMessage loginMessage = new NetworkMessage(NetworkMessage.LOGIN, null, newType);
+        client.write(loginMessage.serializedMsg);
       }else{
         println("unnable to connect to  " + serverIp +":"+ serverPort);
       }
