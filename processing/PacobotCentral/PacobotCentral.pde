@@ -63,23 +63,33 @@ void draw() {
  
 }
 
+String getMessageFromClient(Client client){
+  // Receive the message
+  // The message is read using readString().
+  String incomingMessage = client.readString(); 
+  // The trim() function is used to remove the extra line break that comes in with the message.
+  incomingMessage = incomingMessage.trim();
+  // Print to Processing message window
+  println( "Client sent:" + incomingMessage);
+  return incomingMessage;
+}
 
 void processMessage(String incomingMessage, Client client){
   if(incomingMessage!=null){
     NetworkMessage message = new NetworkMessage(incomingMessage);
-    println( "Message type:" + message.messageType);
-    
+      
     if(message.messageType.equals(NetworkMessage.LOGIN)){
       PacobotClient pacobotClient = new PacobotClient(robotClientImg, ctrlClientImg);
       //We assign the id to match the position in the list of clients.
       pacobotClient.clientId = str(clients.size());
       pacobotClient.clientIp = client.ip();
       //We expect the client type to be specified in the body
-      pacobotClient.clientType = message.body;
+      pacobotClient.clientType = message.body.trim();
       clients.add(pacobotClient);
       
       NetworkMessage reply = new NetworkMessage(NetworkMessage.LOGIN, pacobotClient.clientId, message.body);
       server.write(reply.serializedMsg);
+      println("Server replied:"+ reply.serializedMsg);
       
     }else if(message.messageType.equals(NetworkMessage.LOGOUT)){
       //TODO
@@ -99,28 +109,18 @@ void displayClients(){
     for (PacobotClient pClient : clients) {
       //TODO smarter split logic for more than 2 clients...
       int x,y;
+      y = height/2 - 50;
       if(clients.size()==1){
-        x = width/2;
+        x = width/2 - 50;
       } else if(clients.size()==2){
-        x = width/4 +  clientNum*width/2;
+        x = width/4 - 50 +  clientNum*width/2;
       }else{
-        x = 10 +  clientNum*10;
+        x = 10 +  clientNum*100;
       }
-      y = height/2;
-      pClient.display(x, y);
+      
+      pClient.display(x, y, 90);
       clientNum++;
     }
-}
-
-String getMessageFromClient(Client client){
-  // Receive the message
-  // The message is read using readString().
-  String incomingMessage = client.readString(); 
-  // The trim() function is used to remove the extra line break that comes in with the message.
-  incomingMessage = incomingMessage.trim();
-  // Print to Processing message window
-  println( "Client sent:" + incomingMessage);
-  return incomingMessage;
 }
 
 // The serverEvent function is called whenever a new client connects.

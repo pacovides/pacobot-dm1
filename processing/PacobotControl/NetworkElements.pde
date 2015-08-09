@@ -4,6 +4,8 @@ class NetworkMessage {
   //Define the possible message types
   final static String LOGIN = "HELLO",  LOGOUT = "BYE", COMMAND="SIMONSAYS", UNKNOWN = "GARBAGE";
   
+ 
+  
   String messageType = UNKNOWN;
   String clientId = null;
   String body = null;
@@ -70,22 +72,27 @@ class PacobotClient {
   }
   
   //A client can be rendered at the specified pos
-  void display(int x, int y){
+  void display(int x, int y, int size){
     if(ROBOT.equals(clientType)){
       if(robotClientImg != null){
-        image(robotClientImg, x,y, 50, 50);
+        image(robotClientImg, x,y, size, size);
       }else{
         text("robot", x, y);
       }
-    }if(CONTROLLER.equals(clientType)){
+    }else if(CONTROLLER.equals(clientType)){
       if(ctrlClientImg != null){
-        image(ctrlClientImg, x,y, 50, 50);
+        image(ctrlClientImg, x,y, size, size);
       }else{
         text("controller", x, y);
       }
     }else{
+       println("unknown type:" + clientType);
        text("???", x, y);
     }
     
+    textAlign(LEFT);
+    text("id:" + clientId, x, y + size + 5);
+    text("ip:" + clientIp, x, y + size + 15);
+        
   }
 }
