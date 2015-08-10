@@ -51,7 +51,7 @@ RadioBox modeSelector; //RadioBox to select the mode (local/client/server)
 
 final int sliderSize = 16; //The preffered scrollbar size in both its sides
 
-PFont f;
+PFont titleFont, msgFont;
 
 void setup()
 {
@@ -79,19 +79,34 @@ void setup()
   optionNames.append("remote-bot");
   modeSelector = new RadioBox(50, height- 100, "modeSelector", optionNames);
 
-  f = createFont("Consolas", 16);
-  textFont(f);
+  titleFont = loadFont("ROBO-36.vlw");
+  msgFont = loadFont("OratorStd-36.vlw");
+
 }
 
 void draw()
 {
-  background(80);
+  background(20);
+  
+  // Display rectangle
+  fill(180);
+  rect(10, 50, width - 40, height - 200);
+  
+  //Display tittle
+  fill(255);
+  textFont(titleFont,36);
+  textAlign(CENTER);
+  text("Pacobot Controller", width/2, 40);
   
   //We save the previous angle and client type for later comparison
   int prevX = xAngle;
   int prevY = yAngle;
   String prevClientType = clientType;
   boolean prevHeartState = isHeartOn;
+  
+  //Prepare caption font
+  fill(0);
+  textFont(msgFont,16);
   
   modeSelector.display();
   String selectedMode = modeSelector.getSelectedOption();
