@@ -1,3 +1,5 @@
+
+//Avatar only available for OpenGL friendly cards. Disabled for compatibility
 class PacobotAvatar {
   int xAngle, yAngle;
    
@@ -22,6 +24,42 @@ class PacobotAvatar {
     rotateX(PI - radians(yAngle));
     box(50, 50, 80);
     popMatrix();
+  }
+  
+}
+
+class PacobotStatusConsole {
+  int xAngle, yAngle;
+  String errorMsg = "";
+  
+  //Absolute coordinates and size for the console
+  int x,y,w,h;
+   
+  PacobotStatusConsole(int x, int y, int w, int h){
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+  }
+  
+  void setAngularPos(int xAngle, int yAngle){
+    this.xAngle = xAngle;
+    this.yAngle = yAngle;
+  }
+  
+    
+  void display(){
+    // Console main rectangle
+    fill(180);
+    rect(x, y, w, h);
+    
+    //Display pos
+    fill(0);
+    textSize(16);
+    text("Horizontal angle: " + xAngle, x + 10, y + h - 40);
+    text("Vertical angle: " + yAngle , x + 10, y + h - 20);
+  
   }
   
 }
@@ -142,6 +180,8 @@ class RadioBox {
         ellipse(optionButtons.get(i).x, optionButtons.get(i).y, buttonSize, buttonSize);
       }
       optionButtons.get(i).display();
+      
+      fill(0);
       text(optionNames.get(i), xLbl, yLbl);
       
     }
@@ -150,7 +190,6 @@ class RadioBox {
   String getSelectedOption(){
     return optionNames.get(selectedIndex);
   }
-  
   
 }
 
@@ -179,8 +218,7 @@ class Scrollbar {
     }
     if (mousePressed && over) {
       locked = true;
-    }
-    if (!mousePressed) {
+    }if (!mousePressed) {
       locked = false;
     }
     if (locked) {
@@ -212,9 +250,10 @@ class Scrollbar {
 
   void display() {
     update();
-    noStroke();
-    fill(204);
+    stroke(0);
+    fill(150);
     rect(xpos, ypos, swidth, sheight);
+    noStroke();
     if (over || locked) {
       fill(0, 0, 0);
     } else {
@@ -232,6 +271,8 @@ class Scrollbar {
     // 0 and the total width of the scrollbar
     return spos * ratio;
   }
+  
+  
 }
 
 class HScrollbar extends Scrollbar {
@@ -254,6 +295,13 @@ class HScrollbar extends Scrollbar {
   //Updates the slider position
   float getNewsPos(){
     return constrain(mouseX-sheight/2, sposMin, sposMax);
+  }
+  
+  //Gives back the relative position 
+  float getRelPos() {
+    // Convert spos to be values between
+    // 0 and the total width of the scrollbar
+    return (spos - xpos)* ratio;
   }
   
   //Paints the slider
@@ -292,6 +340,13 @@ class VScrollbar extends Scrollbar{
   //Updates the slider position
   float getNewsPos(){
     return constrain(mouseY-swidth/2, sposMin, sposMax);
+  }
+  
+  //Gives back the relative position 
+  float getRelPos() {
+    // Convert spos to be values between
+    // 0 and the total width of the scrollbar
+    return (spos - ypos)* ratio;
   }
   
   //Paints the slider

@@ -43,19 +43,24 @@ String clientType;
 HScrollbar xScrollBar;  //Scrollbar in control of panning
 VScrollbar yScrollBar;  //Scrollbar in control of tilting
 
-//Pacobot avatar only supported with OpenGL friendly cards
-PacobotAvatar avatar;
-
 PushButton heartButton; //button to activate the IR led at the heart of out bot
 RadioBox modeSelector; //RadioBox to select the mode (local/client/server)
 
+PacobotStatusConsole statusConsole;
+int consoleWidth, consoleHeight;
+
 final int sliderSize = 16; //The preffered scrollbar size in both its sides
+
+int leftMargin = 20;
+int rightMargin = 36;
+int topMargin = 50;
+int bottomMargin = 200;
 
 PFont titleFont, msgFont;
 
 void setup()
 {
-  size(600, 600, P3D);
+  size(600, 600);
   frameRate(100);
   
   println(Serial.list()); // List COM-ports
@@ -69,15 +74,19 @@ void setup()
 
   //Now we create some scrollbars for easier control
   noStroke();
-  xScrollBar = new HScrollbar(0, height-sliderSize/2, width-sliderSize, sliderSize, sliderSize);
-  yScrollBar = new VScrollbar(width-sliderSize/2, 0, sliderSize, height-sliderSize, sliderSize);
-  avatar = new PacobotAvatar(90,90);
-  heartButton = new PushButton(width - 50,height- 50,20, "heartButton");
+   
+  consoleWidth = width - leftMargin - rightMargin;
+  consoleHeight = height  -topMargin - bottomMargin;
+  
+  statusConsole = new PacobotStatusConsole(leftMargin, topMargin, consoleWidth, consoleHeight);
+  xScrollBar = new HScrollbar(leftMargin, height- bottomMargin +sliderSize/2, consoleWidth, sliderSize, sliderSize);
+  yScrollBar = new VScrollbar(width - rightMargin +sliderSize/2, topMargin, sliderSize, consoleHeight, sliderSize);
+  heartButton = new PushButton(width - 20,height- 20,20, "heartButton");
   StringList optionNames = new StringList();
   optionNames.append("local");
   optionNames.append("remote-control");
   optionNames.append("remote-bot");
-  modeSelector = new RadioBox(50, height- 100, "modeSelector", optionNames);
+  modeSelector = new RadioBox(leftMargin, height - bottomMargin + 50, "modeSelector", optionNames);
 
   titleFont = loadFont("ROBO-36.vlw");
   msgFont = loadFont("OratorStd-36.vlw");
@@ -88,15 +97,25 @@ void draw()
 {
   background(20);
   
-  // Display rectangle
-  fill(180);
-  rect(10, 50, width - 40, height - 200);
-  
-  //Display tittle
+  //Display title
   fill(255);
   textFont(titleFont,36);
   textAlign(CENTER);
   text("Pacobot Controller", width/2, 40);
+  
+   //Display mode selector title
+  textFont(titleFont,18);
+  textAlign(LEFT);
+  text("Operation Mode", leftMargin, height - bottomMargin + 40);
+  
+   //Display pacobot central connection title
+  textFont(titleFont,18);
+  textAlign(LEFT);
+  text("Pacobot Central", leftMargin, height - bottomMargin + 145);
+  
+  // ip placeholder
+  fill(255);
+  rect(leftMargin, height - bottomMargin + 155, 150, 25);
   
   //We save the previous angle and client type for later comparison
   int prevX = xAngle;
@@ -107,7 +126,6 @@ void draw()
   //Prepare caption font
   fill(0);
   textFont(msgFont,16);
-  
   modeSelector.display();
   String selectedMode = modeSelector.getSelectedOption();
   
@@ -122,10 +140,6 @@ void draw()
      //draw the controls if applicable
     xScrollBar.display();
     yScrollBar.display();
-    stroke(0);
-    line(0, height-sliderSize/2, width-sliderSize, height-sliderSize/2);
-    line(width-sliderSize/2, 0, width -sliderSize/2, height-sliderSize);
-  
     heartButton.display();
     
     //Calculate x,y locally
@@ -140,23 +154,14 @@ void draw()
     }
     
   }
-  
-  textAlign(CENTER);
-  fill(0);
-  int fontPixelSize = 5;
-  text(xAngle, width/2, height - sliderSize - fontPixelSize);
-  text(yAngle, width- sliderSize - 3*fontPixelSize, height/2);
-
-  avatar.setAngularPos(xAngle,yAngle);
-  avatar.display();
     
   if(selectedMode.equals("local") || selectedMode.equals("remote-bot")){
     
     if( port==null){
       fill(255,0,0);
       textAlign(LEFT);
-      text("Pacobot not detected.", 20, 20);
-      text("Please connect your pacobot and restart the application.", 20, 40);
+      text("Pacobot not detected.", 20, 120);
+      text("Please connect your pacobot and restart the application.", 20, 140);
     }
     
     if(xAngle!=prevX || yAngle!=prevY){
@@ -175,6 +180,9 @@ void draw()
       sendHeartStateToServer(isHeartOn);
     }
   }
+  
+  statusConsole.setAngularPos(xAngle,yAngle);
+  statusConsole.display();
    
 }
 
@@ -197,17 +205,17 @@ void refreshClient(String newType, String prevType){
 
 int calculateXfromSlider(){
   // Get the position of the xScrollBar scrollbar
-  float xsbPos = xScrollBar.getPos();
+  float xsbPos = xScrollBar.getRelPos();  
   // and convert to a value that maps to the horizontal angle
-  int calculatedX = floor(xsbPos*(xMax+1-xMin)/(width-sliderSize)) + xMin;
+  int calculatedX = floor(xsbPos*(xMax+1-xMin)/(consoleWidth)) + xMin;
   return calculatedX;
 }
 
 int calculateYfromSlider(){
    // Get the position of the yScrollBar scrollbar
-  float ysbPos = yScrollBar.getPos();
+  float ysbPos = yScrollBar.getRelPos();
   // and convert to a value that maps to the vertical angle
-  int calculatedY = floor(ysbPos*(yMax+1-yMin)/(height-sliderSize)) + yMin;
+  int calculatedY = floor(ysbPos*(yMax+1-yMin)/(consoleHeight)) + yMin;
   return calculatedY;
 }
 
