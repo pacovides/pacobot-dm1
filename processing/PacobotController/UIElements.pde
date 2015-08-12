@@ -34,6 +34,10 @@ class PacobotStatusConsole {
   
   //Absolute coordinates and size for the console
   int x,y,w,h;
+  
+  color colorBackground = color(255); 
+  color colorFont = color(0);
+  color colorWarnFont = color(255,0,0);    
    
   PacobotStatusConsole(int x, int y, int w, int h){
     this.x = x;
@@ -51,11 +55,11 @@ class PacobotStatusConsole {
     
   void display(){
     // Console main rectangle
-    fill(180);
+    fill(colorBackground);
     rect(x, y, w, h);
     
     //Display pos
-    fill(0);
+    fill(colorFont);
     textSize(16);
     text("Horizontal angle: " + xAngle, x + 10, y + h - 40);
     text("Vertical angle: " + yAngle , x + 10, y + h - 20);
@@ -137,9 +141,17 @@ class RadioBox {
   int x,y;
   String boxName;
   
+  //Width of the radio box
+  int boxWidth = 200;
+  
+  color colorBackground = color(255);
+  color colorForeground = color(0);
+  color colorFont = color(0);
+  color colorActive = color(120,10,10);
+  
   //Size of the full radio button, the push button will be a bit smaller
   final int buttonSize = 20;
-    
+  
   //We need position, a unique name for the box and the labels of the radio buttons
   RadioBox(int x, int y, String boxName, StringList optionNames){
     this.optionNames = optionNames;
@@ -159,11 +171,14 @@ class RadioBox {
   }
   
   void display(){
-    stroke(0);
-    fill(255);
-    textAlign(LEFT, CENTER);
     
-    rect(x, y, 180, 10 + buttonSize*optionNames.size());
+    //We draw the main rectangle
+    stroke(colorForeground);
+    fill(colorBackground);
+    rect(x, y, boxWidth, 10 + buttonSize*optionNames.size());
+    
+    textAlign(LEFT, CENTER);    
+    
     for(int i = 0; i < optionNames.size(); i++){
       int xLbl = x + 10 +buttonSize;
       int yLbl = y+ 5 + buttonSize/2 + buttonSize*i;
@@ -176,12 +191,12 @@ class RadioBox {
       if(selectedIndex == i){
         stroke(0);
         ellipseMode(CENTER);
-        fill(120,10,10);
+        fill(controlActive);
         ellipse(optionButtons.get(i).x, optionButtons.get(i).y, buttonSize, buttonSize);
       }
       optionButtons.get(i).display();
       
-      fill(0);
+      fill(colorFont);
       text(optionNames.get(i), xLbl, yLbl);
       
     }

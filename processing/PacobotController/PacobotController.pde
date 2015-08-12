@@ -1,6 +1,6 @@
-//Processing code:
 import processing.serial.*;       
 import processing.net.*;
+import controlP5.*;
 
 //yMin defines the minimum angle at which the servo motor should go.
 //Since the movement is inverted the lower this number, 
@@ -49,6 +49,8 @@ RadioBox modeSelector; //RadioBox to select the mode (local/client/server)
 PacobotStatusConsole statusConsole;
 int consoleWidth, consoleHeight;
 
+ControlP5 cp5;
+
 final int sliderSize = 16; //The preffered scrollbar size in both its sides
 
 int leftMargin = 20;
@@ -57,6 +59,11 @@ int topMargin = 50;
 int bottomMargin = 200;
 
 PFont titleFont, msgFont;
+
+int controlBackground = color(10);
+int controlForeground = color(80);
+int controlFontColor = color(128);
+int controlActive = color(120,10,10);
 
 void setup()
 {
@@ -79,6 +86,9 @@ void setup()
   consoleHeight = height  -topMargin - bottomMargin;
   
   statusConsole = new PacobotStatusConsole(leftMargin, topMargin, consoleWidth, consoleHeight);
+  statusConsole.colorBackground = controlBackground;
+  statusConsole.colorFont = controlFontColor;
+  
   xScrollBar = new HScrollbar(leftMargin, height- bottomMargin +sliderSize/2, consoleWidth, sliderSize, sliderSize);
   yScrollBar = new VScrollbar(width - rightMargin +sliderSize/2, topMargin, sliderSize, consoleHeight, sliderSize);
   heartButton = new PushButton(width - 20,height- 20,20, "heartButton");
@@ -86,11 +96,45 @@ void setup()
   optionNames.append("local");
   optionNames.append("remote-control");
   optionNames.append("remote-bot");
-  modeSelector = new RadioBox(leftMargin, height - bottomMargin + 50, "modeSelector", optionNames);
+  
+  //We create a mode selector and customize it based on our main color theme and preffered size
+  modeSelector = new RadioBox(leftMargin, height - bottomMargin + 45, "modeSelector", optionNames);
+  modeSelector.colorBackground = controlBackground;
+  modeSelector.colorForeground = controlForeground;
+  modeSelector.colorFont = controlFontColor;
+  modeSelector.colorActive = controlActive;
+  modeSelector.boxWidth = 230;
 
   titleFont = loadFont("ROBO-36.vlw");
   msgFont = loadFont("OratorStd-36.vlw");
-
+  
+  cp5 = new ControlP5(this);
+  
+  rect(leftMargin, height - bottomMargin + 155, 150, 25);
+  
+  ControlFont ipFont = new ControlFont(msgFont, 18);
+  
+  cp5.addTextfield("ip")
+     .setPosition(leftMargin,height - bottomMargin + 150)
+     .setSize(200,30)
+     .setFont(ipFont)
+     .setFocus(true)
+     .setColorActive(controlActive)
+     .setLabel("")
+     .setColorValueLabel(controlFontColor)
+     .setColorForeground(controlForeground)
+     .setColorBackground(controlBackground);
+     
+  //This button triggers the connection to the central   
+  cp5.addBang("connect")
+     .setPosition(leftMargin + 205, height - bottomMargin + 150)
+     .setSize(25, 30)
+     .setTriggerEvent(Bang.RELEASE)
+     .setLabel("OK")
+     .setColorForeground(controlForeground)
+     .setColorActive(controlActive)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER);
+          
 }
 
 void draw()
@@ -104,18 +148,13 @@ void draw()
   text("Pacobot Controller", width/2, 40);
   
    //Display mode selector title
-  textFont(titleFont,18);
+  textFont(msgFont,20);
   textAlign(LEFT);
   text("Operation Mode", leftMargin, height - bottomMargin + 40);
   
    //Display pacobot central connection title
-  textFont(titleFont,18);
-  textAlign(LEFT);
-  text("Pacobot Central", leftMargin, height - bottomMargin + 145);
+  text("Pacobot Central IP", leftMargin, height - bottomMargin + 145);
   
-  // ip placeholder
-  fill(255);
-  rect(leftMargin, height - bottomMargin + 155, 150, 25);
   
   //We save the previous angle and client type for later comparison
   int prevX = xAngle;
