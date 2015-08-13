@@ -30,7 +30,10 @@ class PacobotAvatar {
 
 class PacobotStatusConsole {
   int xAngle, yAngle;
-  String errorMsg = "";
+  String errorMsg = null;
+  //Image that will be presented at the center of the console. Sqare images are expected.
+  PImage mainImage;
+  int imgSize; 
   
   //Absolute coordinates and size for the console
   int x,y,w,h;
@@ -44,6 +47,7 @@ class PacobotStatusConsole {
     this.y = y;
     this.w = w;
     this.h = h;
+    imgSize = h - 20;
     
   }
   
@@ -52,17 +56,33 @@ class PacobotStatusConsole {
     this.yAngle = yAngle;
   }
   
+  void setMainImage(PImage image){
+    this.mainImage = image;
+  }
+  
     
   void display(){
     // Console main rectangle
     fill(colorBackground);
     rect(x, y, w, h);
     
+    if(errorMsg !=null){
+      //Display errors if applicable in a box
+      fill(colorWarnFont);
+      textSize(18);
+      textAlign(CENTER);
+      text(errorMsg,x + 10, y + 10, w - 20, 140); 
+    }
+    
     //Display pos
     fill(colorFont);
     textSize(16);
-    text("Horizontal angle: " + xAngle, x + 10, y + h - 40);
-    text("Vertical angle: " + yAngle , x + 10, y + h - 20);
+    textAlign(RIGHT);
+    int xOffset = w - 10 ;
+    text("Horizontal angle: " + xAngle,x + xOffset, y + h - 40);
+    text("Vertical angle: " + yAngle , x + xOffset, y + h - 20);
+    //Display image centered
+    image(mainImage, x + w/2 - imgSize/2,y + h/2 - imgSize/2, imgSize, imgSize);
   
   }
   

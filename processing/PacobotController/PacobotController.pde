@@ -34,6 +34,9 @@ Serial port = null; // The serial port we will be using
 final int serverPort = 1990;
 String serverIp = "127.0.0.1";
 
+boolean isConnectedToCentral = false;
+boolean isConnectedToBot = false;
+
 // Declare a client to connect to
 Client client;
 
@@ -60,6 +63,11 @@ int bottomMargin = 200;
 
 PFont titleFont, msgFont;
 
+// Images for presenting in the main console
+PImage localStandByImg, localNoBotImg;  //local
+PImage rCtrlStandByImg, rCtrlNoConnectionImg;  //remote Ctrl
+PImage rBotNoBotImg, rBotNoConnectionImg, rBotStandByImg;  //remote bot
+
 int controlBackground = color(10);
 int controlForeground = color(80);
 int controlFontColor = color(128);
@@ -78,7 +86,7 @@ void setup()
   if(Serial.list().length>0){
     port = new Serial(this, Serial.list()[0], 19200);
   }
-
+  
   //Now we create some scrollbars for easier control
   noStroke();
    
@@ -86,8 +94,8 @@ void setup()
   consoleHeight = height  -topMargin - bottomMargin;
   
   statusConsole = new PacobotStatusConsole(leftMargin, topMargin, consoleWidth, consoleHeight);
-  statusConsole.colorBackground = controlBackground;
-  statusConsole.colorFont = controlFontColor;
+  statusConsole.colorBackground = color(255,255,205);
+  statusConsole.colorFont = color(10);
   
   xScrollBar = new HScrollbar(leftMargin, height- bottomMargin +sliderSize/2, consoleWidth, sliderSize, sliderSize);
   yScrollBar = new VScrollbar(width - rightMargin +sliderSize/2, topMargin, sliderSize, consoleHeight, sliderSize);
@@ -107,6 +115,14 @@ void setup()
 
   titleFont = loadFont("ROBO-36.vlw");
   msgFont = loadFont("OratorStd-36.vlw");
+  
+  localStandByImg = loadImage("localStandBy.png");  
+  localNoBotImg = loadImage("localNoBot.png");  
+  rCtrlStandByImg = loadImage("rCtrlStandBy.png");  
+  rCtrlNoConnectionImg = loadImage("rCtrlNoConnection.png");  
+  rBotNoBotImg = loadImage("rBotNoBot.png");  
+  rBotNoConnectionImg = loadImage("rBotNoConnection.png");  
+  rBotStandByImg = loadImage("rBotStandBy.png");  
   
   cp5 = new ControlP5(this);
   
@@ -154,13 +170,18 @@ void draw()
   
    //Display pacobot central connection title
   text("Pacobot Central IP", leftMargin, height - bottomMargin + 145);
-  
-  
+    
   //We save the previous angle and client type for later comparison
   int prevX = xAngle;
   int prevY = yAngle;
   String prevClientType = clientType;
   boolean prevHeartState = isHeartOn;
+  
+  //Verify if there is an active port to where the bot must be connected
+  isConnectedToBot = port!=null;
+  
+  //Clean any previous errors
+  statusConsole.errorMsg = null;
   
   //Prepare caption font
   fill(0);
@@ -174,6 +195,12 @@ void draw()
   }else if(selectedMode.equals("remote-bot")){
     refreshClient(PacobotClient.ROBOT, prevClientType);
   }
+  
+  if((selectedMode.equals("remote-bot") || selectedMode.equals("remote-control"))
+      && !isConnectedToCentral){
+    statusConsole.errorMsg = "You are not connected to Pacobot Central. Please type the ip of the central and press ok.";
+  }
+  
   
   if(selectedMode.equals("local") || selectedMode.equals("remote-control")){
      //draw the controls if applicable
@@ -197,10 +224,7 @@ void draw()
   if(selectedMode.equals("local") || selectedMode.equals("remote-bot")){
     
     if( port==null){
-      fill(255,0,0);
-      textAlign(LEFT);
-      text("Pacobot not detected.", 20, 120);
-      text("Please connect your pacobot and restart the application.", 20, 140);
+       statusConsole.errorMsg = "Pacobot not detected. Please connect your pacobot and restart the application.";
     }
     
     if(xAngle!=prevX || yAngle!=prevY){
@@ -210,7 +234,7 @@ void draw()
     if(isHeartOn != prevHeartState){
       updateBotHeart(isHeartOn);
     }
-  }else if(selectedMode.equals("client")){
+  }else if(selectedMode.equals("remote-control")){
     if(xAngle!=prevX || yAngle!=prevY){
       sendPosToServer(xAngle, yAngle);
     }
@@ -221,8 +245,35 @@ void draw()
   }
   
   statusConsole.setAngularPos(xAngle,yAngle);
+  statusConsole.setMainImage(selectImage(selectedMode, isConnectedToBot, isConnectedToCentral));
   statusConsole.display();
    
+}
+
+PImage selectImage(String selectedMode, boolean isConnectedToBot, boolean isConnectedToCentral){
+  
+  if(selectedMode.equals("local")){
+    if(isConnectedToBot){
+      return localStandByImg;
+    }else{
+      return localNoBotImg;
+    }
+  }else if(selectedMode.equals("remote-control")){
+    if(isConnectedToCentral){
+      return rCtrlStandByImg;
+    }else{
+      return rCtrlNoConnectionImg;
+    }
+  }else{ //default to remote bot
+    if(!isConnectedToBot){
+      return rBotNoBotImg;
+    }else if(!isConnectedToCentral){
+      return rBotNoConnectionImg;
+    }else{
+      return rBotStandByImg;
+    }
+  }
+  
 }
 
 //If needed will create a new client and assign it a new unique id. And then attempt a connection to the central server.
@@ -235,8 +286,10 @@ void refreshClient(String newType, String prevType){
         println("client connected as " + clientType + " to  " + serverIp +":"+ serverPort);
         NetworkMessage loginMessage = new NetworkMessage(NetworkMessage.LOGIN, null, newType);
         client.write(loginMessage.serializedMsg);
+        isConnectedToCentral = true;        
       }else{
         println("unnable to connect to  " + serverIp +":"+ serverPort);
+        isConnectedToCentral = false;        
       }
         
     }
