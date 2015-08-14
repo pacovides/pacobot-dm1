@@ -1,0 +1,3 @@
+#Run from ../PacobotCentral/application.windows64
+java -cp lib/PacobotCentral.jar;lib/core.jar;lib/net.jar PacobotCentral
+java -cp lib/PacobotController.jar;lib/core.jar;lib/net.jar;lib/serial.jar;lib/controlP5.jar;lib/jssc.jar PacobotController

@@ -67,11 +67,16 @@ String getMessageFromClient(Client client){
   // Receive the message
   // The message is read using readString().
   String incomingMessage = client.readString(); 
-  // The trim() function is used to remove the extra line break that comes in with the message.
-  incomingMessage = incomingMessage.trim();
-  // Print to Processing message window
-  println( "Client sent:" + incomingMessage);
-  return incomingMessage;
+  if(incomingMessage != null){
+    // The trim() function is used to remove the extra line break that comes in with the message.
+    incomingMessage = incomingMessage.trim();
+    // Print to Processing message window
+    println( "Client sent:" + incomingMessage);
+    return incomingMessage;
+  }
+  
+  return null;
+  
 }
 
 void processMessage(String incomingMessage, Client client){

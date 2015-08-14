@@ -39,6 +39,7 @@ class NetworkMessage {
       else{
         //If token size does not match we leave the message as unknown and put the whole content in the body
         this.body = serializedMsg;
+        println("Unable to parse network message: " +  serializedMsg);
       }
       
     }
