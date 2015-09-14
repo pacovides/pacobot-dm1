@@ -34,9 +34,8 @@ boolean isHeartOn = false;
 
 Serial port = null; // The serial port we will be using
 
-// By default we attempt to connect to server at 127.0.0.1 (localhost), port 1990
+//Our application uses port 1990
 final int serverPort = 1990;
-String serverIp = "127.0.0.1";
 
 boolean isConnectedToCentral = false;
 boolean isConnectedToBot = false;
@@ -213,7 +212,7 @@ void draw()
     xAngle = calculateXfromSlider();
     yAngle = calculateYfromSlider();
     isHeartOn = heartButton.isOn;
-  } else if (selectedMode.equals("remote-bot")) {
+  } else if (selectedMode.equals("remote-bot") && isConnectedToCentral) {
     String incomingMessage = getMessageFromCentral();
     //If there is no message, there is no point processing it.
     if (incomingMessage!=null) {
@@ -234,7 +233,7 @@ void draw()
     if (isHeartOn != prevHeartState) {
       updateBotHeart(isHeartOn);
     }
-  } else if (selectedMode.equals("remote-control")) {
+  } else if (selectedMode.equals("remote-control") && isConnectedToCentral) {
     if (xAngle!=prevX || yAngle!=prevY) {
       sendPosToServer(xAngle, yAngle);
     }
@@ -274,21 +273,36 @@ PImage selectImage(String selectedMode, boolean isConnectedToBot, boolean isConn
   }
 }
 
+void connect(){
+  String serverIp = cp5.get(Textfield.class,"ip").getText();
+  if(serverIp == null || serverIp.length() < 1){
+    //TODO smarter validation
+    println("invalid ip " +  serverIp);
+    return;
+  }
+  
+  // Create the Client, connect to server at provided ip and port
+  client = new Client(this, serverIp, serverPort);
+  if (client.active()) {
+    println("client connected as " + clientType + " to  " + serverIp +":"+ serverPort);
+    NetworkMessage loginMessage = new NetworkMessage(NetworkMessage.LOGIN, null, clientType);
+    client.write(loginMessage.serializedMsg);
+    isConnectedToCentral = true;
+  } else {
+    println("unnable to connect to  " + serverIp +":"+ serverPort);
+    isConnectedToCentral = false;
+  }
+  
+}
+
 //If needed will create a new client and assign it a new unique id. And then attempt a connection to the central server.
 void refreshClient(String newType, String prevType) {
   clientType = newType;
-  if (client==null || !clientType.equals(prevType) ) {
-    // Create the Client, connect to server at provided ip and port
-    client = new Client(this, serverIp, serverPort);
-    if (client.active()) {
-      println("client connected as " + clientType + " to  " + serverIp +":"+ serverPort);
-      NetworkMessage loginMessage = new NetworkMessage(NetworkMessage.LOGIN, null, newType);
-      client.write(loginMessage.serializedMsg);
-      isConnectedToCentral = true;
-    } else {
-      println("unnable to connect to  " + serverIp +":"+ serverPort);
-      isConnectedToCentral = false;
-    }
+  if (!clientType.equals(prevType) ) {
+    //TODO proper disconnect
+    // Hard disconnect, will reconnect upon OK
+    client = null;
+    isConnectedToCentral = false;
   }
 }
 
@@ -430,7 +444,7 @@ void sendHeartStateToServer(boolean lightIt)
   } else {
     lightItStringValue = "off";
   }
-  
+
   //TODO de-hardcode client id
   NetworkMessage ledMsg = new NetworkMessage(NetworkMessage.COMMAND, "101", "led=" + lightItStringValue );
   client.write(ledMsg.serializedMsg);
