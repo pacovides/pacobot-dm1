@@ -13,6 +13,9 @@ PImage robotClientImg, ctrlClientImg;  // Images for presenting clients
 // By default we attempt to connect to server at 127.0.0.1 (localhost), port 1990
 final int serverPort = 1990;
 
+//Boolean to determine if there is a client present
+boolean clientOnline = false;
+
 void setup() {
   size(600,400);
   
@@ -34,20 +37,40 @@ void draw() {
   fill(180);
   rect(10, 50, width - 20, height - 60);
   
-  
+  //Main Title
   fill(255);
   textFont(titleFont,36);
   textAlign(CENTER);
   text("Pacobot Central", width/2, 40);
   
+  //Server status
+  fill(0);
+  textFont(msgFont,14);
+  textAlign(LEFT);
+  text("Server started @ " + server.ip() + ":" + serverPort, 18, height - 18);
+  
+  text("Data", 45, 70);
+  
+   if(clientOnline){
+    fill(0,255,0);
+   }else{
+     fill(50);
+   }
+  ellipse(25, 65, 15, 15);
+  
+  textAlign(CENTER);
+ 
   // If a client is available, we will find out
   // If there is no client, it will be"null"
   Client client = server.available();
    // We should only proceed if the client is not null
   if (client!= null) {
+    clientOnline = true;
     String incomingMessage = getMessageFromClient(client);
     //If there is a message we process it
     processMessage(incomingMessage, client);
+  }else{
+    clientOnline = false;
   }
     
   if(clients.size()==0){
